@@ -31,9 +31,43 @@ SprintPulse runs a multi-step, stateful workflow over sprint data:
 - **stops and asks a human** before escalating anything serious — and can take the reviewer's note back
   through risk assessment for a second pass;
 - writes a professional weekly report and **stores this sprint's findings back into memory**;
-- answers historical questions such as *"What has been stuck for more than one sprint?"* from memory.
+- answers historical questions such as _"What has been stuck for more than one sprint?"_ from memory.
 
 A sample of the generated output is in [`docs/sample_weekly_report.md`](docs/sample_weekly_report.md).
+
+---
+
+## Week 3 Project 3C framing
+
+### One-liner
+
+SprintPulse helps engineering and delivery leads turn sprint data into a weekly status report in a Streamlit app, replacing manual tracker review and report writing; it uses project-data and memory tools to analyze progress, detect blockers, remember prior sprints, and assess risks, hands off to a human before escalation, and succeeds when a lead can produce a trustworthy report in under two minutes with every critical blocker identified.
+
+### Agent framework
+
+| Field               | Decision                                                                                                                                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Agent goal          | Turn a current sprint and its history into a grounded status report with actionable risk flags.                                                                                                                                   |
+| Where people use it | Streamlit internal portal, with a separate historical-question workflow in the Ask memory tab.                                                                                                                                    |
+| Steps in order      | Load current and previous sprint; analyze progress; detect explicit and inferred blockers; recall project memory; compare trends; assess risks; request approval when escalation is needed; compose the report; persist findings. |
+| Tools and actions   | The project-data tool reads sprint exports. The memory tool searches and writes project history. The report is generated in the app, but no external message, ticket, or record is sent automatically.                            |
+| What it remembers   | Sprint health, scores, blockers, risks, recurring issues, reviewer decisions, and reviewer notes, scoped to the project across runs.                                                                                              |
+| Hard limits         | It must not escalate a recommendation without human approval, invent tracker facts, hide data or model failures, or treat a missing previous sprint as a reliable comparison.                                                     |
+| Human-in-the-loop   | High or critical risks pause the graph. A reviewer can approve, reject, or revise a recommendation; a revision note is sent through risk assessment once before the report is finalized.                                          |
+| Failure behavior    | Transient data calls retry. Missing or malformed current data halts the run. LLM and memory failures use visible degraded fallbacks, while the report remains available when possible.                                            |
+| Success measure     | A complete report identifies the sample sprint's critical blockers, recalls carry-over issues from the prior sprint, and never records an escalation as approved without a reviewer decision.                                     |
+
+### Data-source scope
+
+The demo uses validated JSON exports in `data/` through the `ProjectDataSource` interface. This is a replaceable project-management adapter: a Jira, Asana, or Notion implementation can provide the same methods without changing the graph, analysis, memory, or UI. The submitted demo should state this clearly rather than implying that the current build calls a live tracker API.
+
+### Demo acceptance checks
+
+- Run Sprint 5 and show the generated report and critical blocker evidence.
+- Show Sprint 4 history being recalled while analyzing Sprint 5.
+- Reject or revise one escalation and show that the final report reflects the decision.
+- Ask, "What has been stuck for more than one sprint?" and show the task IDs returned from memory plus tracker figures.
+- Enable the LLM-offline or memory-offline fault and show the visible fallback behavior.
 
 ---
 
@@ -72,11 +106,11 @@ models, so the same shapes are used for LLM structured output, for the checkpoin
 
 Two edges are genuinely conditional, not decoration:
 
-| Edge | Decision |
-|---|---|
-| after `ingest_project_data` | critical data failure halts the run; otherwise continue |
-| after `assess_risk` | interrupt for a human **only** when a risk is high/critical or flagged for escalation — a healthy sprint is reported without ever pausing |
-| after `request_approval` | a reviewer note routes back into `assess_risk` for one revision pass, then on to the report |
+| Edge                        | Decision                                                                                                                                  |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| after `ingest_project_data` | critical data failure halts the run; otherwise continue                                                                                   |
+| after `assess_risk`         | interrupt for a human **only** when a risk is high/critical or flagged for escalation — a healthy sprint is reported without ever pausing |
+| after `request_approval`    | a reviewer note routes back into `assess_risk` for one revision pass, then on to the report                                               |
 
 ### Project structure
 
@@ -103,29 +137,29 @@ sprintpulse/
 
 ## Tech stack
 
-| Layer | Choice |
-|---|---|
-| Orchestration | **LangGraph** 1.2 (`StateGraph`, conditional edges, `interrupt()`, checkpointer) |
-| LLM integration | **LangChain** 1.4 (`init_chat_model`, `with_structured_output`) |
-| Model | **Claude Opus 5** by default (`SPRINTPULSE_LLM_PROVIDER`/`_MODEL` configurable; OpenAI supported) |
-| Memory | **Mem0** (`mem0ai` 2.0) — hosted platform client or self-hosted with a local Qdrant store |
-| Embeddings | **fastembed** (`BAAI/bge-small-en-v1.5`) locally, so memory needs no API key |
-| UI | **Streamlit** |
-| Config | **python-dotenv** |
+| Layer           | Choice                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| Orchestration   | **LangGraph** 1.2 (`StateGraph`, conditional edges, `interrupt()`, checkpointer)                  |
+| LLM integration | **LangChain** 1.4 (`init_chat_model`, `with_structured_output`)                                   |
+| Model           | **Claude Opus 5** by default (`SPRINTPULSE_LLM_PROVIDER`/`_MODEL` configurable; OpenAI supported) |
+| Memory          | **Mem0** (`mem0ai` 2.0) — hosted platform client or self-hosted with a local Qdrant store         |
+| Embeddings      | **fastembed** (`BAAI/bge-small-en-v1.5`) locally, so memory needs no API key                      |
+| UI              | **Streamlit**                                                                                     |
+| Config          | **python-dotenv**                                                                                 |
 
 ## Agent flow, node by node
 
-| Node | What it does | Failure behaviour |
-|---|---|---|
-| `ingest_project_data` | Calls `get_current_sprint()` and `get_previous_sprint()` on the tool interface. Retries transient I/O twice; structural errors fail fast. | **Critical** — the run halts with a reason. A missing previous sprint only degrades the comparison. |
-| `analyze_sprint` | Progress, story points, overdue/unowned counts, days remaining, and a health score (0–100 → healthy / watch / at_risk / critical) that always lists the reasons behind it. Also scores the previous sprint. | Deterministic; cannot fail on valid data. |
-| `detect_blockers` | Explicit blockers **plus** implicit ones: unfinished dependencies, in-progress tasks with no update for N days, overdue work. Marks anything carried over from last sprint. | Deterministic. |
-| `recall_memory` | Four targeted Mem0 searches (blockers, unresolved risks, health history, carry-overs), de-duplicated. | **Degraded** — falls back to a local store and says so. |
-| `trend_analysis` | Week-over-week signals (completion, points, blocked count/points, overdue, health score) and recurring issues from data *and* memory. | Deterministic. |
-| `assess_risk` | LLM structured output (`RiskAssessment`) grounded strictly in the computed facts, memories and any reviewer note. Retried twice. | **Degraded** — falls back to the rule-based risk register; a guardrail also re-adds any *critical* deterministic risk the model omitted. |
-| `request_approval` | Builds the escalation list and calls `interrupt()`. The graph stops until the caller resumes with decisions. | Skipped entirely when nothing needs a decision. |
-| `compose_report` | LLM narrative (`ReportNarrative`) + deterministic figures → `WeeklyReport`. Approved actions are committed, rejected ones are recorded but never actioned. | **Degraded** — a template narrative is used instead. |
-| `persist_memory` | Writes health, blockers, risks (with the human's verdict), recurring issues and reviewer notes back to Mem0, skipping anything already stored. | **Degraded** — the report still stands; the gap is reported. |
+| Node                  | What it does                                                                                                                                                                                                | Failure behaviour                                                                                                                        |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `ingest_project_data` | Calls `get_current_sprint()` and `get_previous_sprint()` on the tool interface. Retries transient I/O twice; structural errors fail fast.                                                                   | **Critical** — the run halts with a reason. A missing previous sprint only degrades the comparison.                                      |
+| `analyze_sprint`      | Progress, story points, overdue/unowned counts, days remaining, and a health score (0–100 → healthy / watch / at_risk / critical) that always lists the reasons behind it. Also scores the previous sprint. | Deterministic; cannot fail on valid data.                                                                                                |
+| `detect_blockers`     | Explicit blockers **plus** implicit ones: unfinished dependencies, in-progress tasks with no update for N days, overdue work. Marks anything carried over from last sprint.                                 | Deterministic.                                                                                                                           |
+| `recall_memory`       | Four targeted Mem0 searches (blockers, unresolved risks, health history, carry-overs), de-duplicated.                                                                                                       | **Degraded** — falls back to a local store and says so.                                                                                  |
+| `trend_analysis`      | Week-over-week signals (completion, points, blocked count/points, overdue, health score) and recurring issues from data _and_ memory.                                                                       | Deterministic.                                                                                                                           |
+| `assess_risk`         | LLM structured output (`RiskAssessment`) grounded strictly in the computed facts, memories and any reviewer note. Retried twice.                                                                            | **Degraded** — falls back to the rule-based risk register; a guardrail also re-adds any _critical_ deterministic risk the model omitted. |
+| `request_approval`    | Builds the escalation list and calls `interrupt()`. The graph stops until the caller resumes with decisions.                                                                                                | Skipped entirely when nothing needs a decision.                                                                                          |
+| `compose_report`      | LLM narrative (`ReportNarrative`) + deterministic figures → `WeeklyReport`. Approved actions are committed, rejected ones are recorded but never actioned.                                                  | **Degraded** — a template narrative is used instead.                                                                                     |
+| `persist_memory`      | Writes health, blockers, risks (with the human's verdict), recurring issues and reviewer notes back to Mem0, skipping anything already stored.                                                              | **Degraded** — the report still stands; the gap is reported.                                                                             |
 
 ## Memory
 
@@ -143,7 +177,7 @@ Memory is a real Mem0 read/write, not "load last week's JSON into the prompt".
   LLM key is present; without one, entries are stored verbatim.
 - **Historical questions** (the "Ask memory" tab) search Mem0, add exact carry-over figures from the tracker
   tool, and let the model answer from those two sources only. Without a model, the answer is composed
-  deterministically from the same material — so *"What has been stuck for more than one sprint?"* is
+  deterministically from the same material — so _"What has been stuck for more than one sprint?"_ is
   answerable either way.
 
 ## Tools
@@ -163,7 +197,7 @@ class ProjectDataSource(ABC):
 `JSONProjectDataSource` reads `data/sprint_<n>.json` and validates every task through Pydantic. To go live
 against Jira, implement the same class against the Jira REST API and change one factory
 (`nodes/common.data_source_for`) — no node, no prompt and no test of the analysis logic has to change.
-The datasets are deliberately *not* pre-analysed: they contain raw statuses, priorities, owners, due dates,
+The datasets are deliberately _not_ pre-analysed: they contain raw statuses, priorities, owners, due dates,
 dependencies and notes, and every conclusion in the report is derived at run time.
 
 `tools/memory.py` is the second tool: project-scoped Mem0 access with the same swap-friendly shape.
@@ -178,7 +212,7 @@ its evidence and proposed action, and the reviewer chooses:
 
 - **Approve** → the recommendation enters the report as a committed action (`[approved] …`) and is recorded
   in memory as approved.
-- **Reject** → the action is *not* recommended; the report's "Needs human attention" section records that a
+- **Reject** → the action is _not_ recommended; the report's "Needs human attention" section records that a
   human rejected it, with their reason.
 - **Revise + note** → the note goes into state as `human_context` and the graph **routes back into
   `assess_risk`**, which re-rates the risks with the reviewer's information in the prompt. The budget is one
@@ -189,21 +223,21 @@ is written to memory so next week's run knows what the human already decided.
 
 ## Error handling
 
-| Failure | Handling |
-|---|---|
-| Missing sprint / unknown project | `SprintNotFound` → run halts with the reason shown in the UI |
+| Failure                                                             | Handling                                                                                                             |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Missing sprint / unknown project                                    | `SprintNotFound` → run halts with the reason shown in the UI                                                         |
 | Malformed data (bad JSON, missing fields, invalid status, no tasks) | `MalformedSprintData` naming the offending file and field → run halts; the sprint picker flags broken files up front |
-| Transient tool I/O | Retried (2 attempts) before being treated as fatal |
-| Previous sprint unavailable | Non-critical: the run continues with a baseline trend and a degraded note |
-| LLM unavailable, erroring, or returning an empty register | Retried twice, then deterministic fallback for both risks and narrative; a critical-risk guardrail still applies |
-| Mem0 unavailable | Falls back to a local keyword store; the UI warns that memory is degraded |
-| Memory write failure | The finished report is never lost; the gap is reported |
+| Transient tool I/O                                                  | Retried (2 attempts) before being treated as fatal                                                                   |
+| Previous sprint unavailable                                         | Non-critical: the run continues with a baseline trend and a degraded note                                            |
+| LLM unavailable, erroring, or returning an empty register           | Retried twice, then deterministic fallback for both risks and narrative; a critical-risk guardrail still applies     |
+| Mem0 unavailable                                                    | Falls back to a local keyword store; the UI warns that memory is degraded                                            |
+| Memory write failure                                                | The finished report is never lost; the gap is reported                                                               |
 
 Nothing is swallowed: every failure appears in `state["errors"]` with node, kind, severity and attempt
 count, and user-visible degradation is listed in `state["degraded"]` and in the report itself.
 
-**Demo the failure paths** from the sidebar: *Project data source offline* (critical halt), *LLM provider
-offline* (rule-based fallback), *Mem0 offline* (local fallback). Selecting **Sprint 6** demonstrates a real
+**Demo the failure paths** from the sidebar: _Project data source offline_ (critical halt), _LLM provider
+offline_ (rule-based fallback), _Mem0 offline_ (local fallback). Selecting **Sprint 6** demonstrates a real
 malformed-data halt using `data/sprint_6_malformed.json`.
 
 ## Setup
@@ -222,20 +256,20 @@ cp .env.example .env      # optional - see below
 **None are required.** With an empty `.env`, SprintPulse runs end to end: real Mem0 memory (local
 embeddings), deterministic risk register and a template narrative.
 
-| Variable | Purpose | Default |
-|---|---|---|
-| `SPRINTPULSE_LLM_PROVIDER` | `anthropic` or `openai` | `anthropic` |
-| `SPRINTPULSE_LLM_MODEL` | Model id | `claude-opus-5` |
-| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Enables LLM risk analysis, report narrative and memory Q&A | unset → deterministic mode |
-| `SPRINTPULSE_LLM_MAX_TOKENS` | Output cap | `8000` |
-| `SPRINTPULSE_LLM_TEMPERATURE` | Only set for models that accept sampling parameters | unset |
-| `MEM0_MODE` | `oss` (local Qdrant) or `platform` | `oss` |
-| `MEM0_API_KEY` | Hosted Mem0 key (`platform` mode) | unset |
-| `MEM0_VECTOR_PATH` / `MEM0_COLLECTION` | Where local memory lives | `.mem0_store` / `sprintpulse` |
-| `MEM0_EMBEDDER_PROVIDER` / `_MODEL` / `MEM0_EMBEDDING_DIMS` | Embedding backend | `fastembed` / `BAAI/bge-small-en-v1.5` / `384` |
-| `MEM0_INFER` | Mem0 LLM fact extraction | on when an LLM key exists |
-| `SPRINTPULSE_DATA_DIR` | Sprint data location | `data` |
-| `SPRINTPULSE_STALE_DAYS` | Days without an update before in-progress work counts as stale | `5` |
+| Variable                                                    | Purpose                                                        | Default                                        |
+| ----------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- |
+| `SPRINTPULSE_LLM_PROVIDER`                                  | `anthropic` or `openai`                                        | `anthropic`                                    |
+| `SPRINTPULSE_LLM_MODEL`                                     | Model id                                                       | `claude-opus-5`                                |
+| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY`                      | Enables LLM risk analysis, report narrative and memory Q&A     | unset → deterministic mode                     |
+| `SPRINTPULSE_LLM_MAX_TOKENS`                                | Output cap                                                     | `8000`                                         |
+| `SPRINTPULSE_LLM_TEMPERATURE`                               | Only set for models that accept sampling parameters            | unset                                          |
+| `MEM0_MODE`                                                 | `oss` (local Qdrant) or `platform`                             | `oss`                                          |
+| `MEM0_API_KEY`                                              | Hosted Mem0 key (`platform` mode)                              | unset                                          |
+| `MEM0_VECTOR_PATH` / `MEM0_COLLECTION`                      | Where local memory lives                                       | `.mem0_store` / `sprintpulse`                  |
+| `MEM0_EMBEDDER_PROVIDER` / `_MODEL` / `MEM0_EMBEDDING_DIMS` | Embedding backend                                              | `fastembed` / `BAAI/bge-small-en-v1.5` / `384` |
+| `MEM0_INFER`                                                | Mem0 LLM fact extraction                                       | on when an LLM key exists                      |
+| `SPRINTPULSE_DATA_DIR`                                      | Sprint data location                                           | `data`                                         |
+| `SPRINTPULSE_STALE_DAYS`                                    | Days without an update before in-progress work counts as stale | `5`                                            |
 
 > The first run downloads the ~90 MB fastembed model; after that memory works offline.
 
@@ -255,22 +289,22 @@ pytest -q          # 44 tests: analytics, data source, Mem0 round trip, graph, S
 
 ## Demo scenario (under 5 minutes)
 
-1. **Seed the history** — sidebar → *Seed memory from earlier sprints*. Sprint 4 runs end to end and writes
-   its findings to Mem0. *(~20s)*
-2. **Run Sprint 5** — sidebar → *Run status analysis*. Point out the node trace:
-   `ingest → analyze → blockers → recall_memory → trends → assess_risk`. *(~30s)*
+1. **Seed the history** — sidebar → _Seed memory from earlier sprints_. Sprint 4 runs end to end and writes
+   its findings to Mem0. _(~20s)_
+2. **Run Sprint 5** — sidebar → _Run status analysis_. Point out the node trace:
+   `ingest → analyze → blockers → recall_memory → trends → assess_risk`. _(~30s)_
 3. **Human review** — the run has paused. Show the escalations, the evidence behind them, and approve the
-   NorthBank gateway escalation while rejecting one with a reason. *(~60s)*
+   NorthBank gateway escalation while rejecting one with a reason. _(~60s)_
 4. **Overview & Blockers** — health `critical` (42/100) with the reasons listed; ATL-204 blocked 18 days,
-   plus dependency/stale/overdue blockers the board never labelled. *(~45s)*
+   plus dependency/stale/overdue blockers the board never labelled. _(~45s)_
 5. **Trends & memory** — Sprint 4 → Sprint 5 decline, three issues carried across both sprints, and the
-   memories recalled from the earlier run. *(~45s)*
+   memories recalled from the earlier run. _(~45s)_
 6. **Weekly report** — the generated report, including the rejected escalation recorded under "Needs human
-   attention". *(~30s)*
-7. **Ask memory** — *"What has been stuck for more than one sprint?"* → ATL-204 (18 days), ATL-205 and
-   ATL-208 (25 days). *(~30s)*
-8. **Failure path** — tick *Project data source offline* and re-run: the graph halts cleanly with the reason
-   and the retry count; or pick **Sprint 6** for a real malformed-data halt. *(~30s)*
+   attention". _(~30s)_
+7. **Ask memory** — _"What has been stuck for more than one sprint?"_ → ATL-204 (18 days), ATL-205 and
+   ATL-208 (25 days). _(~30s)_
+8. **Failure path** — tick _Project data source offline_ and re-run: the graph halts cleanly with the reason
+   and the retry count; or pick **Sprint 6** for a real malformed-data halt. _(~30s)_
 
 ## Future improvements
 
