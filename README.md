@@ -98,7 +98,7 @@ sprintpulse/
 │   └── memory.py           Mem0-backed ProjectMemory with a degraded local fallback
 ├── data/                   sprint_4.json, sprint_5.json, sprint_6_malformed.json
 ├── docs/sample_weekly_report.md
-└── tests/                  42 tests: analytics, data source, memory, graph, UI
+└── tests/                  44 tests: analytics, data source, memory, graph, UI
 ```
 
 ## Tech stack
@@ -250,7 +250,7 @@ Then open http://localhost:8501.
 Tests:
 
 ```bash
-pytest -q          # 42 tests: analytics, data source, Mem0 round trip, graph, Streamlit UI
+pytest -q          # 44 tests: analytics, data source, Mem0 round trip, graph, Streamlit UI
 ```
 
 ## Demo scenario (under 5 minutes)
