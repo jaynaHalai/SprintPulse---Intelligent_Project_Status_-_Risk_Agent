@@ -11,7 +11,7 @@ from tools.project_data import JSONProjectDataSource, ProjectDataSource
 
 
 def settings_for(state: PulseState) -> Settings:
-    """Settings for this run, including any injected demo faults."""
+    """Settings for this run, including any injected test faults."""
     return get_settings(tuple(state.get("faults") or []))
 
 

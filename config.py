@@ -17,7 +17,7 @@ load_dotenv()
 
 ROOT = Path(__file__).resolve().parent
 
-# Mem0 phones home by default; keep the demo offline-friendly.
+# Mem0 phones home by default; keep local runs offline-friendly.
 os.environ.setdefault("MEM0_TELEMETRY", "False")
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
@@ -122,7 +122,7 @@ def _memory_settings(llm_available: bool) -> MemorySettings:
 
 
 def get_settings(faults: tuple[str, ...] = ()) -> Settings:
-    """Build settings. ``faults`` injects demo failures ('data'|'llm'|'memory')."""
+    """Build settings. ``faults`` injects test failures ('data'|'llm'|'memory')."""
     llm = _llm_settings()
     return Settings(
         data_dir=Path(_env("SPRINTPULSE_DATA_DIR", str(ROOT / "data"))),

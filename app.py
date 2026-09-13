@@ -119,7 +119,7 @@ if result is None:
         "compares week over week, assesses risk, asks you to review anything that needs a "
         "human decision, and then writes a weekly status report."
     )
-    st.info("Tip for a first demo: seed memory from earlier sprints, then run Sprint 5.")
+    st.info("Tip for a first run: seed memory from earlier sprints, then run Sprint 5.")
     st.stop()
 
 state = result.state

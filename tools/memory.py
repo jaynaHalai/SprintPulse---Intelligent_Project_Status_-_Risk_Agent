@@ -2,7 +2,7 @@
 
 ``ProjectMemory`` performs real Mem0 read/write operations. Two backends are
 supported (hosted platform and self-hosted OSS); if neither can be reached the
-class degrades to a local JSON store so a demo never dies on a memory outage,
+class degrades to a local JSON store so a run never fails on a memory outage,
 and the degradation is reported rather than hidden.
 """
 

@@ -37,7 +37,7 @@ A sample of the generated output is in [`docs/sample_weekly_report.md`](docs/sam
 
 ---
 
-## Week 3 Project 3C framing
+## Product framing
 
 ### One-liner
 
@@ -59,9 +59,9 @@ SprintPulse helps engineering and delivery leads turn sprint data into a weekly 
 
 ### Data-source scope
 
-The demo uses validated JSON exports in `data/` through the `ProjectDataSource` interface. This is a replaceable project-management adapter: a Jira, Asana, or Notion implementation can provide the same methods without changing the graph, analysis, memory, or UI. The submitted demo should state this clearly rather than implying that the current build calls a live tracker API.
+The current implementation uses validated JSON exports in `data/` through the `ProjectDataSource` interface. This is a replaceable project-management adapter: a Jira, Asana, or Notion implementation can provide the same methods without changing the graph, analysis, memory, or UI. The interface makes the current data-source boundary explicit rather than implying a live tracker API.
 
-### Demo acceptance checks
+### What the workflow demonstrates
 
 - Run Sprint 5 and show the generated report and critical blocker evidence.
 - Show Sprint 4 history being recalled while analyzing Sprint 5.
@@ -236,8 +236,8 @@ is written to memory so next week's run knows what the human already decided.
 Nothing is swallowed: every failure appears in `state["errors"]` with node, kind, severity and attempt
 count, and user-visible degradation is listed in `state["degraded"]` and in the report itself.
 
-**Demo the failure paths** from the sidebar: _Project data source offline_ (critical halt), _LLM provider
-offline_ (rule-based fallback), _Mem0 offline_ (local fallback). Selecting **Sprint 6** demonstrates a real
+Test the failure paths from the sidebar: _Project data source offline_ (critical halt), _LLM provider
+offline_ (rule-based fallback), _Mem0 offline_ (local fallback). Selecting **Sprint 6** produces a real
 malformed-data halt using `data/sprint_6_malformed.json`.
 
 ## Setup
@@ -287,24 +287,24 @@ Tests:
 pytest -q          # 44 tests: analytics, data source, Mem0 round trip, graph, Streamlit UI
 ```
 
-## Demo scenario (under 5 minutes)
+## Suggested product walkthrough
 
 1. **Seed the history** — sidebar → _Seed memory from earlier sprints_. Sprint 4 runs end to end and writes
-   its findings to Mem0. _(~20s)_
+   its findings to Mem0.
 2. **Run Sprint 5** — sidebar → _Run status analysis_. Point out the node trace:
-   `ingest → analyze → blockers → recall_memory → trends → assess_risk`. _(~30s)_
+   `ingest → analyze → blockers → recall_memory → trends → assess_risk`.
 3. **Human review** — the run has paused. Show the escalations, the evidence behind them, and approve the
-   NorthBank gateway escalation while rejecting one with a reason. _(~60s)_
+   NorthBank gateway escalation while rejecting one with a reason.
 4. **Overview & Blockers** — health `critical` (42/100) with the reasons listed; ATL-204 blocked 18 days,
-   plus dependency/stale/overdue blockers the board never labelled. _(~45s)_
+   plus dependency/stale/overdue blockers the board never labelled.
 5. **Trends & memory** — Sprint 4 → Sprint 5 decline, three issues carried across both sprints, and the
-   memories recalled from the earlier run. _(~45s)_
+   memories recalled from the earlier run.
 6. **Weekly report** — the generated report, including the rejected escalation recorded under "Needs human
-   attention". _(~30s)_
+   attention".
 7. **Ask memory** — _"What has been stuck for more than one sprint?"_ → ATL-204 (18 days), ATL-205 and
-   ATL-208 (25 days). _(~30s)_
+   ATL-208 (25 days).
 8. **Failure path** — tick _Project data source offline_ and re-run: the graph halts cleanly with the reason
-   and the retry count; or pick **Sprint 6** for a real malformed-data halt. _(~30s)_
+   and the retry count; or pick **Sprint 6** for a real malformed-data halt.
 
 ## Future improvements
 
