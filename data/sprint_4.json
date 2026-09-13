@@ -1,0 +1,142 @@
+{
+  "project": {
+    "id": "atlas",
+    "name": "Atlas Payments Platform",
+    "manager": "Priya Raman"
+  },
+  "sprint": {
+    "number": 4,
+    "name": "Sprint 4 - Checkout Hardening",
+    "start_date": "2026-08-18",
+    "end_date": "2026-08-31",
+    "as_of": "2026-08-31",
+    "goal": "Ship the redesigned checkout flow and unblock the payment gateway integration."
+  },
+  "team": ["Priya Raman", "Marcus Bell", "Dana Osei", "Sam Whitfield", "Ife Adeyemi"],
+  "tasks": [
+    {
+      "id": "ATL-201",
+      "title": "Checkout UI redesign",
+      "status": "done",
+      "priority": "high",
+      "owner": "Priya Raman",
+      "story_points": 5,
+      "due_date": "2026-08-27",
+      "last_update": "2026-08-26",
+      "depends_on": [],
+      "notes": "Shipped behind a feature flag."
+    },
+    {
+      "id": "ATL-202",
+      "title": "Cart persistence service",
+      "status": "done",
+      "priority": "medium",
+      "owner": "Marcus Bell",
+      "story_points": 3,
+      "due_date": "2026-08-25",
+      "last_update": "2026-08-25",
+      "depends_on": [],
+      "notes": ""
+    },
+    {
+      "id": "ATL-203",
+      "title": "Refund workflow API",
+      "status": "done",
+      "priority": "high",
+      "owner": "Dana Osei",
+      "story_points": 5,
+      "due_date": "2026-08-29",
+      "last_update": "2026-08-28",
+      "depends_on": [],
+      "notes": ""
+    },
+    {
+      "id": "ATL-204",
+      "title": "Payment gateway integration (NorthBank)",
+      "status": "blocked",
+      "priority": "critical",
+      "owner": "Marcus Bell",
+      "story_points": 8,
+      "due_date": "2026-08-29",
+      "last_update": "2026-08-27",
+      "blocked_since": "2026-08-25",
+      "blocker_reason": "NorthBank has not issued sandbox credentials; integration cannot be tested end to end.",
+      "depends_on": [],
+      "notes": "Escalated to the vendor account manager on 2026-08-27. No response yet."
+    },
+    {
+      "id": "ATL-205",
+      "title": "Fraud scoring model v1",
+      "status": "in_progress",
+      "priority": "high",
+      "owner": "Ife Adeyemi",
+      "story_points": 8,
+      "due_date": "2026-09-05",
+      "last_update": "2026-08-30",
+      "depends_on": [],
+      "notes": "Training data pipeline slower than estimated."
+    },
+    {
+      "id": "ATL-206",
+      "title": "Payment receipt emails",
+      "status": "done",
+      "priority": "low",
+      "owner": "Sam Whitfield",
+      "story_points": 2,
+      "due_date": "2026-08-26",
+      "last_update": "2026-08-24",
+      "depends_on": [],
+      "notes": ""
+    },
+    {
+      "id": "ATL-207",
+      "title": "Load testing harness",
+      "status": "in_progress",
+      "priority": "medium",
+      "owner": "Sam Whitfield",
+      "story_points": 3,
+      "due_date": "2026-09-02",
+      "last_update": "2026-08-29",
+      "depends_on": [],
+      "notes": "CI runners are flaky, roughly one run in three fails for unrelated reasons."
+    },
+    {
+      "id": "ATL-208",
+      "title": "PCI compliance checklist",
+      "status": "todo",
+      "priority": "high",
+      "owner": "Dana Osei",
+      "story_points": 5,
+      "due_date": "2026-08-29",
+      "last_update": "2026-08-19",
+      "depends_on": [],
+      "notes": "Not started; audit window opens in Sprint 6."
+    },
+    {
+      "id": "ATL-209",
+      "title": "Settlement reconciliation job",
+      "status": "blocked",
+      "priority": "high",
+      "owner": "Dana Osei",
+      "story_points": 5,
+      "due_date": "2026-09-01",
+      "last_update": "2026-08-28",
+      "blocked_since": "2026-08-28",
+      "blocker_reason": "Waiting on finance to sign off the settlement data schema.",
+      "depends_on": [],
+      "notes": "Finance review meeting booked for 2026-09-02."
+    },
+    {
+      "id": "ATL-210",
+      "title": "Observability dashboards",
+      "status": "done",
+      "priority": "medium",
+      "owner": "Ife Adeyemi",
+      "story_points": 3,
+      "due_date": "2026-08-30",
+      "last_update": "2026-08-30",
+      "depends_on": [],
+      "notes": ""
+    }
+  ]
+}

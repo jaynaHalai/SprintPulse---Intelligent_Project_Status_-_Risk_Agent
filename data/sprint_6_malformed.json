@@ -1,0 +1,8 @@
+{
+  "project": { "id": "atlas", "name": "Atlas Payments Platform" },
+  "sprint": { "number": 6, "name": "Sprint 6 - Go Live", "start_date": "2026-09-15" },
+  "tasks": [
+    { "id": "ATL-219", "title": "Production cutover", "status": "in_flight", "story_points": "five" },
+    { "title": "Missing id task", "status": "todo" }
+  ]
+}

@@ -1,0 +1,13 @@
+langgraph>=1.2.11
+langchain>=1.4.0
+langchain-core>=1.6.3
+langchain-anthropic>=1.7.2
+langchain-openai>=1.6.2
+mem0ai>=2.0.20
+qdrant-client>=1.19.0
+fastembed>=0.8.0
+streamlit>=1.63.0
+pandas>=3.0.5
+python-dotenv>=1.2.3
+pydantic>=2.13.5
+pytest>=9.1.1

@@ -1,0 +1,176 @@
+{
+  "project": {
+    "id": "atlas",
+    "name": "Atlas Payments Platform",
+    "manager": "Priya Raman"
+  },
+  "sprint": {
+    "number": 5,
+    "name": "Sprint 5 - Payments Go-Live Prep",
+    "start_date": "2026-09-01",
+    "end_date": "2026-09-14",
+    "as_of": "2026-09-12",
+    "goal": "Reach go-live readiness for the NorthBank payment gateway and close PCI compliance gaps."
+  },
+  "team": ["Priya Raman", "Marcus Bell", "Dana Osei", "Sam Whitfield", "Ife Adeyemi"],
+  "tasks": [
+    {
+      "id": "ATL-204",
+      "title": "Payment gateway integration (NorthBank)",
+      "status": "blocked",
+      "priority": "critical",
+      "owner": "Marcus Bell",
+      "story_points": 8,
+      "due_date": "2026-09-10",
+      "last_update": "2026-09-08",
+      "blocked_since": "2026-08-25",
+      "blocker_reason": "NorthBank has still not issued sandbox credentials; integration cannot be tested end to end.",
+      "depends_on": [],
+      "notes": "Second escalation sent 2026-09-04. Go-live date depends entirely on this."
+    },
+    {
+      "id": "ATL-205",
+      "title": "Fraud scoring model v1",
+      "status": "in_progress",
+      "priority": "high",
+      "owner": "Ife Adeyemi",
+      "story_points": 8,
+      "due_date": "2026-09-09",
+      "last_update": "2026-09-02",
+      "depends_on": [],
+      "notes": "Carried over from Sprint 4. No update logged for over a week."
+    },
+    {
+      "id": "ATL-207",
+      "title": "Load testing harness",
+      "status": "done",
+      "priority": "medium",
+      "owner": "Sam Whitfield",
+      "story_points": 3,
+      "due_date": "2026-09-05",
+      "last_update": "2026-09-05",
+      "depends_on": [],
+      "notes": "Completed after carrying over from Sprint 4."
+    },
+    {
+      "id": "ATL-208",
+      "title": "PCI compliance checklist",
+      "status": "in_progress",
+      "priority": "high",
+      "owner": "Dana Osei",
+      "story_points": 5,
+      "due_date": "2026-09-09",
+      "last_update": "2026-09-11",
+      "depends_on": [],
+      "notes": "Carried over from Sprint 4. Audit window opens 2026-09-21."
+    },
+    {
+      "id": "ATL-209",
+      "title": "Settlement reconciliation job",
+      "status": "done",
+      "priority": "high",
+      "owner": "Dana Osei",
+      "story_points": 5,
+      "due_date": "2026-09-04",
+      "last_update": "2026-09-03",
+      "depends_on": [],
+      "notes": "Finance signed off the schema on 2026-09-02, unblocking the job."
+    },
+    {
+      "id": "ATL-211",
+      "title": "Apple Pay wallet support",
+      "status": "todo",
+      "priority": "high",
+      "owner": "Priya Raman",
+      "story_points": 5,
+      "due_date": "2026-09-14",
+      "last_update": "2026-09-01",
+      "depends_on": ["ATL-204"],
+      "notes": "Cannot start until the gateway integration is testable."
+    },
+    {
+      "id": "ATL-212",
+      "title": "Chargeback dispute UI",
+      "status": "in_progress",
+      "priority": "medium",
+      "owner": "Priya Raman",
+      "story_points": 3,
+      "due_date": "2026-09-10",
+      "last_update": "2026-09-11",
+      "depends_on": [],
+      "notes": ""
+    },
+    {
+      "id": "ATL-213",
+      "title": "Rate limiting on payments API",
+      "status": "done",
+      "priority": "medium",
+      "owner": "Marcus Bell",
+      "story_points": 3,
+      "due_date": "2026-09-08",
+      "last_update": "2026-09-07",
+      "depends_on": [],
+      "notes": ""
+    },
+    {
+      "id": "ATL-214",
+      "title": "Fraud scoring model v2 rollout",
+      "status": "todo",
+      "priority": "high",
+      "owner": "Ife Adeyemi",
+      "story_points": 8,
+      "due_date": "2026-09-14",
+      "last_update": "2026-09-01",
+      "depends_on": ["ATL-205"],
+      "notes": "Blocked in practice by the v1 model still being in progress."
+    },
+    {
+      "id": "ATL-215",
+      "title": "Vendor failover runbook",
+      "status": "in_progress",
+      "priority": "high",
+      "owner": "",
+      "story_points": 3,
+      "due_date": "2026-09-12",
+      "last_update": "2026-09-06",
+      "depends_on": [],
+      "notes": "No named owner since Marcus moved to the gateway escalation."
+    },
+    {
+      "id": "ATL-216",
+      "title": "Customer support export",
+      "status": "done",
+      "priority": "low",
+      "owner": "Sam Whitfield",
+      "story_points": 2,
+      "due_date": "2026-09-09",
+      "last_update": "2026-09-09",
+      "depends_on": [],
+      "notes": ""
+    },
+    {
+      "id": "ATL-217",
+      "title": "Flaky CI runner stabilisation",
+      "status": "in_progress",
+      "priority": "medium",
+      "owner": "Sam Whitfield",
+      "story_points": 3,
+      "due_date": "2026-09-12",
+      "last_update": "2026-09-10",
+      "depends_on": [],
+      "notes": "Recurring problem first raised in Sprint 4; still costing the team roughly a day per sprint."
+    },
+    {
+      "id": "ATL-218",
+      "title": "Go-live runbook and rollback plan",
+      "status": "todo",
+      "priority": "critical",
+      "owner": "Priya Raman",
+      "story_points": 5,
+      "due_date": "2026-09-14",
+      "last_update": "2026-09-01",
+      "depends_on": ["ATL-204"],
+      "notes": "Required sign-off item before the go-live gate."
+    }
+  ]
+}
